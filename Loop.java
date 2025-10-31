@@ -1,5 +1,4 @@
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 class Loop implements Node {
     private final ParserHelper P;
@@ -60,6 +59,10 @@ class Loop implements Node {
     }
 
     public void execute(Memory mem, Scanner dataScanner) {
+        execute(mem, dataScanner, new HashMap<>());
+    }
+
+    public void execute(Memory mem, Scanner dataScanner, Map<String, Function> procedures) {
         int initVal = initExpr.execute(mem);
         if (mem.hasIntVar(loopVar)) {
             mem.setInt(loopVar, initVal);
@@ -71,7 +74,7 @@ class Loop implements Node {
 
         while (condition.evaluate(mem)) {
             mem.enterScope();
-            body.execute(mem, dataScanner);
+            body.execute(mem, dataScanner, procedures);
             mem.exitScope();
 
             int stepVal = stepExpr.execute(mem);

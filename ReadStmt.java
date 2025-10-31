@@ -1,3 +1,4 @@
+import java.util.Map;
 import java.util.Scanner;
 
 class ReadStmt implements Node {
@@ -18,8 +19,7 @@ class ReadStmt implements Node {
 
     @Override
     public void semanticCheck(SymbolTable st) {
-        // read targets must be integers
-        SymbolTable.requireType(st, id, VarType.INTEGER);
+        SymbolTable.requireDeclared(st, id);
     }
 
     @Override
@@ -33,6 +33,22 @@ class ReadStmt implements Node {
         }
 
         int nextVal = dataScanner.nextInt();
-        mem.setInt(id, nextVal);
+        
+        if (mem.hasIntVar(id)) {
+            mem.setInt(id, nextVal);
+        } else if (mem.hasObjVar(id)) {
+            // Read into object's default key
+            Map<String, Integer> obj = mem.getObj(id);
+            if (obj == null) {
+                throw new RuntimeException("Runtime error: object '" + id + "' not initialized");
+            }
+            String defaultKey = mem.getDefaultKey(id);
+            if (defaultKey == null) {
+                throw new RuntimeException("Runtime error: object '" + id + "' has no default key");
+            }
+            obj.put(defaultKey, nextVal);
+        } else {
+            throw new RuntimeException("Undefined variable: " + id);
+        }
     }
 }

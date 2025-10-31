@@ -1,5 +1,10 @@
-CSE 3341 Project 3 
+CSE 3341 Project 4
 Nicholas Boysko
+
+Project 4 Additions
+    For Project 4, the interpreter was extended to support nested procedure declarations
+    Function.java: Handles nested procedure declarations with formal parameters
+    Call.java: Implements Procedure calls
 
 Project 3 Additions:
     For project 3, execute methods were added for every parse tree class to interpret the Core program

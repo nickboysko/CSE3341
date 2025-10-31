@@ -1,6 +1,4 @@
-// If.java
-
-import java.util.Scanner;
+import java.util.*;
 
 class If implements Node {
     private final ParserHelper P;
@@ -47,13 +45,17 @@ class If implements Node {
     }
 
     public void execute(Memory mem, Scanner dataScanner) {
+        execute(mem, dataScanner, new HashMap<>());
+    }
+
+    public void execute(Memory mem, Scanner dataScanner, Map<String, Function> procedures) {
         if (cond.evaluate(mem)) {
             mem.enterScope();
-            thenPart.execute(mem, dataScanner);
+            thenPart.execute(mem, dataScanner, procedures);
             mem.exitScope(); 
         } else if (elsePart != null) {
             mem.enterScope();
-            elsePart.execute(mem, dataScanner);
+            elsePart.execute(mem, dataScanner, procedures);
             mem.exitScope();
         }
     }

@@ -1,34 +1,63 @@
+import java.util.*;
+
 class DeclSeq implements Node {
     private final ParserHelper P;
-    private Decl first;
-    private DeclSeq rest; 
+    private List<Node> items; 
 
-    DeclSeq(CoreScanner s) { this.P = new ParserHelper(s); }
+    DeclSeq(CoreScanner s) { 
+        this.P = new ParserHelper(s); 
+        this.items = new ArrayList<>();
+    }
 
     @Override
     public void parse() {
-        first = new Decl(P.scanner());
-        first.parse();
-        if (P.token() == Core.INTEGER || P.token() == Core.OBJECT) {
-            rest = new DeclSeq(P.scanner());
-            rest.parse();
+        while (P.token() == Core.INTEGER || P.token() == Core.OBJECT || P.token() == Core.PROCEDURE) {
+            if (P.token() == Core.PROCEDURE) {
+                Function func = new Function(P.scanner());
+                func.parse();
+                items.add(func);
+            } else {
+                Decl decl = new Decl(P.scanner());
+                decl.parse();
+                items.add(decl);
+            }
         }
     }
 
     @Override
     public void semanticCheck(SymbolTable st) {
-        first.semanticCheck(st);
-        if (rest != null) rest.semanticCheck(st);
+        for (Node item : items) {
+            item.semanticCheck(st);
+        }
     }
 
     @Override
     public void print(int indent) {
-        first.print(indent);
-        if (rest != null) rest.print(indent);
+        for (Node item : items) {
+            item.print(indent);
+        }
     }
 
     public void execute(Memory mem) {
-        first.execute(mem);
-        if (rest != null) rest.execute(mem);
+        for (Node item : items) {
+            if (item instanceof Decl) {
+                ((Decl) item).execute(mem);
+            }
+            // Functions are not executed during declaration
+        }
+    }
+
+    public Map<String, Function> extractFunctions() {
+        Map<String, Function> functions = new HashMap<>();
+        for (Node item : items) {
+            if (item instanceof Function) {
+                Function func = (Function) item;
+                if (functions.containsKey(func.getName())) {
+                    SymbolTable.error("duplicate procedure name: " + func.getName());
+                }
+                functions.put(func.getName(), func);
+            }
+        }
+        return functions;
     }
 }

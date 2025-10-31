@@ -1,4 +1,4 @@
-import java.util.Scanner;
+import java.util.*;
 
 class Stmt implements Node {
     private final ParserHelper P;
@@ -8,7 +8,7 @@ class Stmt implements Node {
 
     static boolean startsStmt(Core t) {
         return t == Core.ID || t == Core.IF || t == Core.FOR || t == Core.PRINT
-                || t == Core.READ || t == Core.INTEGER || t == Core.OBJECT;
+                || t == Core.READ || t == Core.INTEGER || t == Core.OBJECT || t == Core.BEGIN;
     }
 
     @Override
@@ -21,6 +21,7 @@ class Stmt implements Node {
             case PRINT: impl = new PrintStmt(P.scanner()); break;
             case READ: impl = new ReadStmt(P.scanner()); break;
             case INTEGER: case OBJECT: impl = new Decl(P.scanner()); break;
+            case BEGIN: impl = new Call(P.scanner()); break;
             default: P.fail("expected a statement"); return;
         }
         impl.parse();
@@ -36,21 +37,31 @@ class Stmt implements Node {
         impl.print(indent);
     }
 
-    public void execute(Memory mem, Scanner dataScanner) {
+    public void execute(Memory mem, Scanner dataScanner, Map<String, Function> procedures) {
         if (impl instanceof Assign) {
             ((Assign) impl).execute(mem);
         } else if (impl instanceof If) {
-            ((If) impl).execute(mem, dataScanner);
+            ((If) impl).execute(mem, dataScanner, procedures);
         } else if (impl instanceof Loop) {
-            ((Loop) impl).execute(mem, dataScanner);
+            ((Loop) impl).execute(mem, dataScanner, procedures);
         } else if (impl instanceof PrintStmt) {
             ((PrintStmt) impl).execute(mem);
         } else if (impl instanceof ReadStmt) {
             ((ReadStmt) impl).execute(mem, dataScanner);
         } else if (impl instanceof Decl) {
             ((Decl) impl).execute(mem);
+        } else if (impl instanceof Call) {
+            ((Call) impl).execute(mem, dataScanner, procedures);
         } else {
             throw new RuntimeException("Unknown statement type during execution");
         }
+    }
+
+    public boolean isCall() {
+        return impl instanceof Call;
+    }
+
+    public Call getCall() {
+        return (Call) impl;
     }
 }

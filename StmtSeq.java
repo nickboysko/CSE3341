@@ -1,4 +1,4 @@
-import java.util.Scanner;
+import java.util.*;
 
 class StmtSeq implements Node {
     private final ParserHelper P;
@@ -37,7 +37,22 @@ class StmtSeq implements Node {
     }
 
     public void execute(Memory mem, Scanner dataScanner) {
-        first.execute(mem, dataScanner);
-        if (rest != null) rest.execute(mem, dataScanner);
+        execute(mem, dataScanner, new HashMap<>());
+    }
+
+    public void execute(Memory mem, Scanner dataScanner, Map<String, Function> procedures) {
+        first.execute(mem, dataScanner, procedures);
+        if (rest != null) rest.execute(mem, dataScanner, procedures);
+    }
+
+    public List<Call> extractCalls() {
+        List<Call> calls = new ArrayList<>();
+        if (first.isCall()) {
+            calls.add(first.getCall());
+        }
+        if (rest != null) {
+            calls.addAll(rest.extractCalls());
+        }
+        return calls;
     }
 }
